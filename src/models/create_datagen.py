@@ -123,13 +123,13 @@ class Datagen(Sequence):
 
         
 
-DATAGEN_PATH = "data/datagen/"
-DF_PATH = "data/df/"
+DATAGEN_PATH = "data/"
+DF_PATH = "data/"
 if (__name__ == "__main__"):
-    my_parser.add_argument("train data", help = "CSV path of train data relative to data/df")
-    my_parser.add_argument("test data", help = "CSV path of test data relative to data/df")
-    my_parser.add_argument("train save path", help = "Where the train datagen will be saved relative to data/datagen")
-    my_parser.add_argument("test save path", help = "Where the test datagen will be saved relative to data/datagen")
+    my_parser.add_argument("train data", help = "CSV path of train data relative to data/")
+    my_parser.add_argument("test data", help = "CSV path of test data relative to data/")
+    my_parser.add_argument("train save path", help = "Where the train datagen will be saved relative to data/")
+    my_parser.add_argument("test save path", help = "Where the test datagen will be saved relative to data/")
     my_parser.add_argument("dt", help = "Amount of dt datagen will create for samples")
     my_parser.add_argument("gap", help = "Gap between each potential sample")
     args = my_parser.parse_args()

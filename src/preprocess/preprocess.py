@@ -156,7 +156,7 @@ def encodePieces(_path):
     transposed = addTranspositions(filteredMidis)
     print("Tokenizing pieces: ")
     encodedPieces = EncodedPieces(tokenizeManyPieces(transposed))
-    encodedPieces.save("data/df/tokenize_transposed_pieces.csv")
+    encodedPieces.save("data/tokenize_transposed_pieces.csv")
 
 def trainTestSplit(encodedPath, trainToTestRatio):
     df = pd.read_csv(encodedPath)
@@ -168,14 +168,14 @@ def trainTestSplit(encodedPath, trainToTestRatio):
     for i in pieces[int((1-trainToTestRatio)*len(pieces)):]:
         testDf = testDf.append(i)
 
-    testDf.to_csv("data/df/test_df.csv", index=False)
-    trainDf.to_csv("data/df/train_df.csv", index=False)
+    testDf.to_csv("data/test_df.csv", index=False)
+    trainDf.to_csv("data/train_df.csv", index=False)
     
 
 def main():
     _path = "data/parsed_midis.pickle"
     encodePieces(_path)
-    trainTestSplit("data/df/tokenize_transposed_pieces.csv", 0.15)
+    trainTestSplit("data/tokenize_transposed_pieces.csv", 0.15)
     
 
 
