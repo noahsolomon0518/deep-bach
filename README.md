@@ -58,3 +58,25 @@ I have not played around too much with this parameter so it would be a good plac
 ### Gap
 Gap is the increment at which samples will be created.  If gap is 5 then every 5 time units a new sample will be created. A lower gap create more samples but may lead to overfitting as the model will have seen more of each piece. I would suggest trying gap values of 1, 5, and 10 and see how they compare.
 
+
+## 4. Train The Model
+
+Finally it is time to build and train the model. This can be done by entering the following:
+
+```
+python src/models/train_model.py <train_datagen_name> <test_datagen_name> <model name> <embedding dimension> <lstm1 dimension> <middle dimension>
+```
+
+The train and test datagen are the names of the datagens that were created. The model name can be anything. The next 3 arguments are hyper parameters for the model and will determine how complex the neural network is. A higher number creates a more complex network that can potentially learn more complicated trends. But it also can lead to overfitting so there must be a balance between complexity and simplicity. For baseline, try the following setup:
+
+**Embedding dimension**: 16
+**LSTM1 dimension**: 200
+**Middle dimension**: 200
+
+There are optional arguments as well. To use those enter the following after positional arguments:
+```
+--<argument> <value>
+```
+These options include:
+
+1. LSTM2Dimension - Adds another LSTM layer. Adds more complexity to the network.

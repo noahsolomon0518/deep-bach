@@ -12,7 +12,6 @@ MODEL_PATH = "models/"
 def trainModel(trainDatagen, testDatagen, savePath, fitConfig, buildConfig, compileConfig = {"optimizer": "adam", "loss": "categorical_crossentropy", "metrics":["accuracy"]}):
     xTest = testDatagen[0][0]
     inputDimensions = [len(xInp[0]) for xInp in xTest]
-    print(inputDimensions)
     embedMaxDimensions = [len(cats) for cats in trainDatagen.sampler.oe.categories]
     softmaxDimension = len(trainDatagen.sampler.ohe.categories[0])
     
@@ -21,7 +20,6 @@ def trainModel(trainDatagen, testDatagen, savePath, fitConfig, buildConfig, comp
     buildConfig["softmaxDimension"] = softmaxDimension
 
     model = buildModel(**buildConfig)
-    model = load_model("models/fully_trained_more/model.h5")
     model.compile(**compileConfig)
     history = model.fit(trainDatagen, validation_data = testDatagen, **fitConfig)
     
@@ -36,9 +34,9 @@ def trainModel(trainDatagen, testDatagen, savePath, fitConfig, buildConfig, comp
 
 if (__name__ == "__main__"):
     my_parser = argparse.ArgumentParser()
-    my_parser.add_argument("train datagen", help = f"CSV path of train data relative to {DATAGEN_PATH}")
-    my_parser.add_argument("test datagen", help = f"CSV path of test data relative to {DATAGEN_PATH}")
-    my_parser.add_argument("model save path", help = f"Where the model will be saved relative to {MODEL_PATH}")
+    my_parser.add_argument("train datagen", help = f"CSV path of train data relative to data/")
+    my_parser.add_argument("test datagen", help = f"CSV path of test data relative to data/")
+    my_parser.add_argument("model save path", help = f"Where the model will be saved relative to models/")
     my_parser.add_argument("embedding dimension", help = f"Output dimension of embeddings")
     my_parser.add_argument("lstm1 dimension", help = f"Right and left LSTM1 output dimension")
     my_parser.add_argument("middle dimension", help = f"Middle fully connected layer output dimension")
@@ -58,8 +56,8 @@ if (__name__ == "__main__"):
 
     args = vars(args)
 
-    datagenTest = Datagen.load(DATAGEN_PATH+args["test datagen"])
-    datagenTrain = Datagen.load(DATAGEN_PATH+args["train datagen"])
+    datagenTest = Datagen.load("data/"+args["test datagen"])
+    datagenTrain = Datagen.load("data/"+args["train datagen"])
 
 
     buildConfig = {}
@@ -73,7 +71,7 @@ if (__name__ == "__main__"):
     buildConfig["middleDropout"] = None if args["middled"] == None else float(args["middled"])
     buildConfig["embeddingOutputDimension"] = int(args["embedding dimension"])
 
-    f = open(MODEL_PATH + args["model save path"] + "/buildConfig", "w")
+    f = open(MODEL_PATH + args["model save path"] + "/buildConfig.json", "w")
     json.dump(buildConfig, f)
     f.close()
 
