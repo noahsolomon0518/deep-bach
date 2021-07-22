@@ -25,7 +25,7 @@ def trainModel(trainDatagen, testDatagen, savePath, fitConfig, buildConfig, comp
     history = model.fit(trainDatagen, validation_data = testDatagen, **fitConfig)
     
     folder = MODEL_PATH
-    model.save(folder+"/model.h5")
+    model.save(folder+savePath+"/model.h5")
     trainDatagen.save(folder+"/train_datagen.pickle")
     testDatagen.save(folder+"/test_datagen.pickle")
 
