@@ -71,10 +71,10 @@ if (__name__ == "__main__"):
     buildConfig["LSTM2RecurrentDropout"] = float(args["lstm2rd"])
     buildConfig["middleDropout"] = None if args["middled"] == None else float(args["middled"])
     buildConfig["embeddingOutputDimension"] = int(args["embedding dimension"])
-    directory = "data"+args["model save path"]
+    directory = "models"+args["model save path"]
     if not os.path.exists(directory):
         os.makedirs(directory)
-    f = open(MODEL_PATH + args["model save path"] + "/buildConfig.json", "w")
+    f = open(directory + "/buildConfig.json", "w")
     json.dump(buildConfig, f)
     f.close()
 
