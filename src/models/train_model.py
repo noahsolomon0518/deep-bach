@@ -26,8 +26,8 @@ def trainModel(trainDatagen, testDatagen, savePath, fitConfig, buildConfig, comp
     
     folder = MODEL_PATH
     model.save(folder+savePath+"/model.h5")
-    trainDatagen.save(folder+"/train_datagen.pickle")
-    testDatagen.save(folder+"/test_datagen.pickle")
+    trainDatagen.save(folder+savePath+"/train_datagen.pickle")
+    testDatagen.save(folder+savePath+"/test_datagen.pickle")
 
 
 
@@ -71,7 +71,7 @@ if (__name__ == "__main__"):
     buildConfig["LSTM2RecurrentDropout"] = float(args["lstm2rd"])
     buildConfig["middleDropout"] = None if args["middled"] == None else float(args["middled"])
     buildConfig["embeddingOutputDimension"] = int(args["embedding dimension"])
-    directory = "models"+args["model save path"]
+    directory = "models/"+args["model save path"]
     if not os.path.exists(directory):
         os.makedirs(directory)
     f = open(directory + "/buildConfig.json", "w")
