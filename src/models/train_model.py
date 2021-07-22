@@ -3,6 +3,7 @@ from keras.callbacks import EarlyStopping
 from create_datagen import *
 from keras.models import load_model
 import argparse
+import os
 import json
 from create_datagen import DATAGEN_PATH
 MODEL_PATH = "models/"
@@ -23,7 +24,7 @@ def trainModel(trainDatagen, testDatagen, savePath, fitConfig, buildConfig, comp
     model.compile(**compileConfig)
     history = model.fit(trainDatagen, validation_data = testDatagen, **fitConfig)
     
-    folder = MODEL_PATH+savePath
+    folder = MODEL_PATH
     model.save(folder+"/model.h5")
     trainDatagen.save(folder+"/train_datagen.pickle")
     testDatagen.save(folder+"/test_datagen.pickle")
@@ -70,7 +71,9 @@ if (__name__ == "__main__"):
     buildConfig["LSTM2RecurrentDropout"] = float(args["lstm2rd"])
     buildConfig["middleDropout"] = None if args["middled"] == None else float(args["middled"])
     buildConfig["embeddingOutputDimension"] = int(args["embedding dimension"])
-
+    directory = "data"+args["model save path"]
+    if not os.path.exists(directory):
+        os.makedirs(directory)
     f = open(MODEL_PATH + args["model save path"] + "/buildConfig.json", "w")
     json.dump(buildConfig, f)
     f.close()
