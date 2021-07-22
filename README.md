@@ -1,4 +1,3 @@
-
 # DeepBach
 
   
@@ -70,13 +69,29 @@ python src/models/train_model.py <train_datagen_name> <test_datagen_name> <model
 The train and test datagen are the names of the datagens that were created. The model name can be anything. The next 3 arguments are hyper parameters for the model and will determine how complex the neural network is. A higher number creates a more complex network that can potentially learn more complicated trends. But it also can lead to overfitting so there must be a balance between complexity and simplicity. For baseline, try the following setup:
 
 **Embedding dimension**: 16
+
 **LSTM1 dimension**: 200
+
 **Middle dimension**: 200
 
 There are optional arguments as well. To use those enter the following after positional arguments:
 ```
 --<argument> <value>
 ```
-These options include:
+These options can be view by using:
 
-1. LSTM2Dimension - Adds another LSTM layer. Adds more complexity to the network.
+```
+python src/models/train_model.py -h
+```
+## 5. Generate Music
+Finally it is time to generate music. To do this the following command must be used:
+```
+python src/generate/generate <model name> <piece number> <iterations>
+```
+Piece number is an integer between 0-11 and iterations is how many times the piece should be iterated over when resampling the music. The more iterations, the more the generated piece will sound different from the original chorale. I would suggest playing around with this value while generating music trying values like 10,20, and 30. 
+
+The generated music will show up in the models/<model name\> folder.
+
+### Last Words
+I would suggest systematically training models and generating music. For example, maybe for each distinct model generate music from 3 pieces with iterations = 10, 20 , and 30. Decide what parameters you are going to test out then figure out a way to organize all the pieces in a sensible file structure hierarchy. 
+	
