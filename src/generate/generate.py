@@ -1,10 +1,10 @@
 import argparse
-from .generation_utils import *
+from generation_utils import *
 import pandas as pd
 import time
 
 
-pieces = [group for i, group in pd.read_csv("data/test_df.csv").groupby("pieceID")]
+pieces = [group for i, group in pd.read_csv("data/df/test_df.csv").groupby("pieceID")]
 
 if __name__=="__main__":
 
