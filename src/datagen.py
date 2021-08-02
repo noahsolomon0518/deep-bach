@@ -1,4 +1,6 @@
+from ast import Str
 from keras.utils import Sequence
+from pandas.core.frame import DataFrame
 from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder
 import pandas as pd
 from itertools import chain
@@ -9,21 +11,21 @@ from datagen_config import *
 
 
 
-def encodeXSample(dfPartition, dt, oe):
-    dt = int(len(dfPartition.iloc[:,0])/2)
+def encodeXSamples(dfPartitions, dt, oe):
+    encoded = oe.fit_transform(dfPartitions)
+    length = len(encoded[0])
+    previous = [np.array([x for rowInd, x in enumerate(encoded[:,colInd]) if rowInd%(2*dt+1)<dt]).reshape(-1,dt) for colInd in range(length)]
+    current = [np.array([x for rowInd, x in enumerate(encoded[:,colInd]) if rowInd%(2*dt+1)==dt]).reshape(-1,1) for colInd in range(length)]
+    future = [np.array([x for rowInd, x in enumerate(encoded[:,colInd]) if rowInd%(2*dt+1)>dt]).reshape(-1,dt) for colInd in range(length)]
+    return previous + current + future
 
-    previous = np.transpose(oe.fit_transform(dfPartition.iloc[:dt,:]))
-    current = np.transpose(oe.fit_transform(dfPartition.iloc[dt,:].to_numpy().reshape(1,-1)))
-    future = np.transpose(oe.fit_transform(dfPartition.iloc[dt+1::-1,:]))
-    return [np.array(inp) for timeBlock in [previous, current, future] for inp in timeBlock]
-
-def encodeYSample(y, ohe):
+def encodeYSamples(y, ohe):
     return ohe.fit_transform(y)[0]
 
 
-tokenizedNormal = pd.read_csv("data/df/tokenized_normal.csv")
 
-oeRange = getPitchRanges(tokenizedNormal) + getBeatRange() + getFermataRange()
+
+
 
 
 
@@ -65,34 +67,33 @@ class DeepBachDatagen:
         return indices
 
     def getBatches(self, indices):
-        batchX = [np.array([]) for i in range(18)]
-        batchY = [np.array([])]
-        for index in indices:
-            dfPartition = self.data.iloc[index-self.dt:index + self.dt + 1,:6].copy()
-            print(index-self.dt,index + self.dt + 1 )
-
+        batchsize = len(indices)
+        sampleSize = 2*self.dt+1
+        dfPartitions = pd.DataFrame(np.zeros((batchsize*sampleSize, 6)), columns=self.data.columns[:6])
+        y = np.zeros((batchsize, 1), dtype="str")
+        for i,index in enumerate(indices):
+            dfPartitions.iloc[i*(sampleSize):(i+1)*(sampleSize)] = self.data.iloc[index-self.dt:index + self.dt + 1,:6]
             maskedPartN = random.randint(0,3)
-            y = np.array([[dfPartition.iloc[self.dt, maskedPartN]]])
-            dfPartition.iloc[self.dt, maskedPartN] = "x"
-            xSample = encodeXSample(dfPartition, self.oe)
-            ySample = encodeYSample(y, self.ohe)
-            for i, xIn in enumerate(xSample):
-                batchX[i] = np.concatenate([batchX[i],xIn], axis = 0)
-            batchY[0] = np.concatenate([batchY[0],ySample], axis = 0)
-        batchX = [xIn.reshape(len(indices),-1) for xIn in batchX]
-        batchY = [batchY[0].reshape(len(indices),-1)]
+            y[i][0] = dfPartitions.iloc[i*(sampleSize)+self.dt, maskedPartN]
+            dfPartitions.iloc[i*(sampleSize)+self.dt, maskedPartN] = "x"
+        batchX = encodeXSamples(dfPartitions, self.dt, self.oe)
+        batchY = encodeYSamples(y, self.ohe)
+
         return batchX, batchY
 
-        
 
 
     def getTrainBatches(self, batchsize=100):
         while True:
-            sampleIndices = np.random.randint(0,len(self.trainIndices), size = batchsize)
+            sampleIndices = np.random.choice(self.trainIndices, size = batchsize)
+            yield self.getBatches(sampleIndices)
+    
+    def getTestBatches(self, batchsize=100):
+        while True:
+            sampleIndices = np.random.choice(self.testIndices, size = batchsize)
             yield self.getBatches(sampleIndices)
 
 
-    #def getTestBatches(self, batchsize=100):
 
 
 
@@ -113,9 +114,24 @@ class DeepBachDatagen:
         return loaded
 
 
-    
-datagen = DeepBachDatagen(tokenizedNormal, 16, (0,0))
-trainDatagen = datagen.getTrainBatches(batchsize = 100)
-for i in range(20):
 
-    print(next(trainDatagen))
+def fromBatchToDf(batch, oe, dt = 16):
+    x, y = batch[0], batch[1]
+    previous = [np.array([oe.categories_[i][int(ele)] for ele in inp.reshape(-1)]).reshape(-1,dt) for i, inp in enumerate(x[:6])]
+    current = [np.array([oe.categories_[i][int(ele)] for ele in inp.reshape(-1)]).reshape(-1,1) for i, inp in enumerate(x[6:12])]
+    future = [np.array([oe.categories_[i][int(ele)] for ele in inp.reshape(-1)]).reshape(-1,dt) for i, inp in enumerate(x[12:18])]
+    data = np.zeros((len(previous) * (2*dt+1), 6), dtype="U2")
+    sampleLength = 2*dt+1
+    for i in range(len(previous)):
+        for colInd in range(6):
+            data[i*sampleLength:i*sampleLength+dt,colInd] = previous[colInd][i]
+            data[i*sampleLength+dt,colInd] = current[colInd][i][0]
+            data[i*sampleLength+dt+1:(i+1)*sampleLength,colInd] = future[colInd][i]
+    
+            
+
+if __name__ == "__main__":
+    datagen = DeepBachDatagen("data/df/tokenized_normal.csv", 16, (0,0))
+    trainDatagen = datagen.getTrainBatches(batchsize = 500)
+    x = next(trainDatagen)
+    fromBatchToDf(x, datagen.oe, 16)

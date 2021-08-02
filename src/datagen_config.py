@@ -22,7 +22,6 @@ def getFermataRange():
 """Used for one hot encoding"""
 def getNetPitchRange(df, transpositionRange = (0,0)):
     pitches = [list(sorted(set(chain.from_iterable(getPitchRanges(df, transpositionRange)))))]
-    pitches[0].remove("_")
     pitches[0].remove("x")
     return pitches
 
