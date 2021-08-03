@@ -81,5 +81,7 @@ def preprocessNormal():
     df = DataFrame(data)
     df.to_csv("data/df/tokenized_normal.csv", index=False)
 
+
+
 preprocessNormal()
 

@@ -1,0 +1,77 @@
+Training
+
+    There are 3 varying parameters that will be tested in this project that involve training. These include:
+        dt - Amount of memory network has
+        transpositionRange - The range at which a sample can be transposed by
+        convertToC - If all samples will be converted to C key signature
+
+    8 different models will be trained:
+
+        1. "default"
+            dt = 16
+            transpositionRange = (-10,10)
+            convertToC = False
+
+        2. "more_dt"
+            dt = 32
+            transpositionRange = (-10,10)
+            convertToC = False
+
+        3. "less_dt"
+            dt = 8
+            transpositionRange = (-10,10)
+            convertToC = False
+
+        4. "more_transposition"
+            dt = 16
+            transpositionRange = (-16,16)
+            convertToC = False
+
+        5. "less_transposition"
+            dt = 16
+            transpositionRange = (-5,5)
+            convertToC = False
+
+        6. "convert_to_c"
+            dt = 16
+            transpositionRange = (0,0)
+            convertToC = True
+
+        7. "more_dt_and_transposition"
+            dt = 32
+            transpositionRange = (-16,16)
+            convertToC = False
+
+
+        8. "less_dt_and_transposition"
+            dt = 8
+            transpositionRange = (-5,5)
+            convertToC = False
+
+
+    Each model will be trained with 25000 randomly selected samples per epoch until validation loss stops decreasing.
+    Validation loss will be calculated using 25000 unseen randomly selected samples. 
+
+Testing
+
+    During training the following metrics will be recorded at a per epoch basis:
+        1. Training accuracy
+        2. Testing accuracy
+        3. Training loss
+        4. Testing loss
+    
+    At the end of training, music will be generated 2 different ways:
+        1. Gibbs sampling from randomly intialized piece 
+        2. Gibbs sampling from piece
+
+
+    The music generation actually has a few parameters:
+        iterations - The number of full sweeps of the resampling process that will be made. The range of iteration values
+            will be [20,30,40]
+        temperature - The "randomness" of the resampling. The range of temperature values are going to be [0.7,1,1.2,1.5]
+
+    10 hand selected pieces will be used. Those include:
+        TBD
+
+
+    

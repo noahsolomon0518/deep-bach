@@ -25,34 +25,51 @@ def getNetPitchRange(df, transpositionRange = (0,0)):
     pitches[0].remove("x")
     return pitches
 
+
+"""Datasets"""
+normalDf = "data/df/tokenized_normal.csv"
+convertedToCDf = None
+
+
 class ConfigLoader:
-    def __init__(self, dataPath, dt, transpositionRange):
-        self.dataPath = dataPath
-        self.dt = dt
-        self.transpositionRange = transpositionRange
-        data = pd.read_csv(dataPath)
-        self.inputRange = getPitchRanges(data, transpositionRange) + getBeatRange() + getFermataRange()
-        self.outputRange = getNetPitchRange(data, transpositionRange)
+    def __init__(self, configName):
+        self.config = config[configName]
+        data = pd.read_csv(self.config["dataPath"])
+        self.config["inputRanges"] = getPitchRanges(data, self.config["transpositionRange"]) + getBeatRange() + getFermataRange()
+        self.config["outputRanges"] = getNetPitchRange(data, self.config["transpositionRange"])
 
 
 
-dtConfig = {
+config = {
     "default": {
         "dt": 16,
         "transpositionRange": (-12,12),
-        "dataPath": "data/df/tokenized_normal.csv"
+        "dataPath": normalDf
     },
 
     "more_dt": {
         "dt": 32,
         "transpositionRange": (-12,12),
-        "dataPath": "data/df/tokenized_normal.csv"
+        "dataPath": normalDf
     },
     
     "less_dt": {
         "dt": 4,
         "transpositionRange": (-12,12),
-        "dataPath": "data/df/tokenized_normal.csv"
+        "dataPath": normalDf
+    },
+    
+    "more_transposition": {
+        "dt": 4,
+        "transpositionRange": (-15,15),
+        "dataPath": normalDf
+    },
+    
+    "less_transposition": {
+        "dt": 4,
+        "transpositionRange": (-12,12),
+        "dataPath": normalDf
     }
+
 }
 
