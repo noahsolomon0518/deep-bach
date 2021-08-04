@@ -52,7 +52,7 @@ def buildPresetModelAndDatagen(name):
 
 
 
-def trainPresetModel(name, batchsize = 250, fitConfig = {}):
+def trainPresetModel(name, batchsize = 500, fitConfig = {}):
     model, _datagen = buildPresetModelAndDatagen(name)
     trainDatagen = _datagen.getTrainBatches(batchsize)
     testDatagen = _datagen.getTestBatches(batchsize)

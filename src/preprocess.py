@@ -46,6 +46,9 @@ def tokenizeKey(piece):
 def tokenizePieceID(piece, n):
     return [n for i in range(getPieceLength(piece))]
 
+def tokenizePieceName(piece):
+    return [piece.metadata.title for i in range(getPieceLength(piece))]
+
 def tokenizeBeats(piece, n):
     return [i%n for i in range(getPieceLength(piece))]
 
@@ -57,8 +60,8 @@ def tokenizeFermatas(piece):
     return tokenized
 
 
-    
-def preprocessNormal():
+"""Preprocesses music21 pieces"""
+def preprocessNormal(pieces):
     data = {
         "soprano": [], 
         "alto": [],
@@ -66,10 +69,10 @@ def preprocessNormal():
         "bass": [],
         "beat": [],
         "fermatas": [],
-        "pieceID": []
+        "pieceID": [],
+        "pieceName": []
         
     }
-    pieces = getData()
     for i,piece in enumerate(pieces):
         data["soprano"].extend(tokenizePart(piece, "Soprano"))
         data["alto"].extend(tokenizePart(piece, "Alto"))
@@ -78,10 +81,11 @@ def preprocessNormal():
         data["beat"].extend(tokenizeBeats(piece, 4))
         data["pieceID"].extend(tokenizePieceID(piece, i))
         data["fermatas"].extend(tokenizeFermatas(piece))
+        data["pieceName"].extend(tokenizePieceName(piece))
     df = DataFrame(data)
-    df.to_csv("data/df/tokenized_normal.csv", index=False)
+    return df
 
 
 
-preprocessNormal()
+preprocessNormal(getData()).to_csv("data/df/tokenized_normal.csv", index=False)
 

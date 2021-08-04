@@ -60,14 +60,14 @@ config = {
     },
     
     "more_transposition": {
-        "dt": 4,
-        "transpositionRange": (-15,15),
+        "dt": 16,
+        "transpositionRange": (-18,18),
         "dataPath": normalDf
     },
     
     "less_transposition": {
-        "dt": 4,
-        "transpositionRange": (-12,12),
+        "dt": 16,
+        "transpositionRange": (-6,6),
         "dataPath": normalDf
     }
 

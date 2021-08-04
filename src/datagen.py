@@ -5,12 +5,9 @@ import numpy as np
 import pickle
 import random
 from mido import MidiFile, MidiTrack, Message
-
-
-if __name__ == "__main__":
-    from datagen_config import *
-else:
-    from .datagen_config import *
+import sys
+import os
+from .datagen_config import *
 
 """Encodes a batch of inputs. Returns list of 18 input array of <batchsize> samples: 6 from previous events, 6 for current events, 6 for future events"""
 def encodeXSamples(partitions, dt, oe):

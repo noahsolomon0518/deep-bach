@@ -10,8 +10,8 @@ CONFIG = config
 def getConfig(name):
 
     return dict(
-        steps_per_epoch = 50,
-        validation_steps = 25,
+        steps_per_epoch = 100,
+        validation_steps = 50,
         callbacks = [
             CSVLogger("models/"+name+"/score_log.csv"),
             EarlyStopping(patience=10)
