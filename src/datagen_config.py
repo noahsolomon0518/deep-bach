@@ -43,31 +43,31 @@ class ConfigLoader:
 config = {
     "default": {
         "dt": 16,
-        "transpositionRange": (-12,12),
+        "transpositionRange": (-6,6),
         "dataPath": normalDf
     },
 
     "more_dt": {
         "dt": 32,
-        "transpositionRange": (-12,12),
+        "transpositionRange": (-6,6),
         "dataPath": normalDf
     },
     
     "less_dt": {
         "dt": 4,
-        "transpositionRange": (-12,12),
+        "transpositionRange": (-6,6),
         "dataPath": normalDf
     },
     
     "more_transposition": {
         "dt": 16,
-        "transpositionRange": (-18,18),
+        "transpositionRange": (-12,12),
         "dataPath": normalDf
     },
     
-    "less_transposition": {
+    "no_transposition": {
         "dt": 16,
-        "transpositionRange": (-6,6),
+        "transpositionRange": (-0,0),
         "dataPath": normalDf
     }
 

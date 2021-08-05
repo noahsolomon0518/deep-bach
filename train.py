@@ -1,4 +1,5 @@
 from os import name
+from src.datagen import Datagen
 from src.model import trainPresetModel
 from src.datagen_config import config
 from argparse import ArgumentParser
@@ -16,7 +17,7 @@ def getConfig(name):
             CSVLogger("models/"+name+"/score_log.csv"),
             EarlyStopping(patience=10)
         ],
-        epochs = 500
+        epochs = 60
     )
 
 
@@ -60,6 +61,13 @@ def main():
         model, _datagen = trainPresetModel(modelName, fitConfig=fitConfig)
         model.save("models/"+saveName+"/model.h5")
         _datagen.save("models/"+saveName+"/datagen.dg")
+        
+        Datagen.load("models/"+saveName+"/datagen.dg")
+
+        f = open("models/"+saveName+"/config.txt", "w")
+        f.write("transpositionRange: "+ str(_datagen.transpositionRange))
+        f.close()
+        
 
 
 

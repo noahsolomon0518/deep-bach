@@ -1,3 +1,4 @@
+import random
 from music21 import note, stream
 import music21
 from music21.stream import Score
@@ -21,6 +22,7 @@ def getData():
         piece = music21.corpus.parse(path)
         if(set(['Soprano', 'Alto', 'Tenor', 'Bass'])==set([part.id for part in piece.parts]) and getTimeSignature(piece)==["4/4"]):
             parsed.append(piece)
+    random.shuffle(parsed)
     return parsed
 
 """Number of sixteenth notes in a piece"""
