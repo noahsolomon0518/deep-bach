@@ -3,28 +3,23 @@ from keras.layers import LSTM, Dense, concatenate, Flatten
 from keras.callbacks import CSVLogger, EarlyStopping
 from tensorflow.python.keras.layers.embeddings import Embedding
 
-from .datagen_config import *
-from .datagen import *
 
 import tensorflow as tf
 
-
-
-
-
-"""Generates model from datagen"""
-def buildModelFromDatagen(datagen, embeddingDimension = 16):
-    embedRanges = [len(cat) for cat in datagen.oe.categories]
-    embeddings = [Embedding(dim, embeddingDimension)  for dim in embedRanges]
-    outputDim = len(datagen.ohe.categories[0])
-    dt = datagen.dt
-    testSampleX, testSampleY = datagen.getBatches([dt])
+"""Build models from dataset"""
+def build_model(dataset, embedding_dimension):
+    datagen = dataset.datagen
+    embed_ranges = [len(cat) for cat in dataset.datagen.voice_encoder.categories] + [mm.dimension for mm in dataset.meta_managers]
+    n_columns = len(embed_ranges)
+    embeddings = [Embedding(dim, embedding_dimension)  for dim in embed_ranges]
+    output_dimension = len(datagen.output_encoder.categories[0])
+    testSampleX = datagen[0][0]
     inputs = [Input(shape = (inp.shape[1])) for inp in testSampleX]
-    embeddingOut = [embeddings[i%6](inputs[i]) for i,inp in enumerate(inputs)]
+    embeddingOut = [embeddings[i%n_columns](inputs[i]) for i,inp in enumerate(inputs)]
 
-    leftLSTMInp = concatenate(embeddingOut[:6])
-    middleLSTMInp = concatenate(embeddingOut[6:12])
-    rightLSTMInp = concatenate(embeddingOut[12:18])
+    leftLSTMInp = concatenate(embeddingOut[:n_columns])
+    middleLSTMInp = concatenate(embeddingOut[n_columns:2*n_columns])
+    rightLSTMInp = concatenate(embeddingOut[2*n_columns:3*n_columns])
 
     leftLSTMOut1 = LSTM(200, return_sequences=True)(leftLSTMInp)
     leftLSTMOut2 = Flatten()(LSTM(200)(leftLSTMOut1))
@@ -36,28 +31,16 @@ def buildModelFromDatagen(datagen, embeddingDimension = 16):
 
     concatenated = concatenate([leftLSTMOut2, middleOut, rightLSTMOut2])
 
-    output = Dense(outputDim, activation="softmax")(concatenated)
+    output = Dense(output_dimension, activation="softmax")(concatenated)
 
     model = Model(inputs, output)
     model.compile(optimizer = "adam", loss = "categorical_crossentropy", metrics = ["accuracy"])
     return model
 
 
-"""Build model using preset config"""
-def buildPresetModelAndDatagen(name):
-    _datagen = Datagen.loadFromPreset(name)
-    model = buildModelFromDatagen(_datagen)
-    return model, _datagen
 
 
 
-
-def trainPresetModel(name, batchsize = 500, fitConfig = {}):
-    model, _datagen = buildPresetModelAndDatagen(name)
-    trainDatagen = _datagen.getTrainBatches(batchsize)
-    testDatagen = _datagen.getTestBatches(batchsize)
-    model.fit(trainDatagen, validation_data = testDatagen, **fitConfig)
-    return model, _datagen
 
 
 

@@ -22,6 +22,9 @@ class MetaManager:
     def transpose_tokenized_meta(self, tokenized_meta, semi_tones):
         pass
 
+    def intialize_random(self, length):
+        pass
+
 
 class BeatMeta(MetaManager):
 
@@ -40,6 +43,8 @@ class BeatMeta(MetaManager):
     def transpose_tokenized_meta(self, tokenized_meta, semi_tones):
         return tokenized_meta
         
+    def intialize_random(self, length):
+        return np.array([i%4 for i in range(length)]).reshape(-1,1)
 
 
 
@@ -63,6 +68,9 @@ class FermataMeta(MetaManager):
 
     def transpose_tokenized_meta(self, tokenized_meta, semi_tones):
         return tokenized_meta
+    
+    def intialize_random(self, length):
+        return np.array([0 for i in range(length)]).reshape(-1,1)
 
 
 
@@ -104,6 +112,10 @@ class KeyMeta(MetaManager):
         new_key = (key+semi_tones)%12
         
         return np.array([new_key for i in range(len(tokenized_meta))]).reshape(-1,1)
+    
+
+    def intialize_random(self, length):
+        return np.array([0 for i in range(length)]).reshape(-1,1)
 
 
 
