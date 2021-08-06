@@ -1,8 +1,10 @@
 
+from warnings import catch_warnings
 import numpy as np
 from numpy.lib.arraysetops import unique
 from itertools import chain
 import music21
+from scipy import sparse
 from tqdm import tqdm
 from sklearn.preprocessing import OrdinalEncoder, OneHotEncoder
 from .meta_manager import *
@@ -38,9 +40,10 @@ class BachChorale:
         self.voice_ranges = self.calculate_voice_ranges(tokenized_chorales)
         self.tokenized_voice_categories = self.calculate_tokenized_voice_categories(tokenized_chorales)
         self.voice_encoder = OrdinalEncoder(categories=self.tokenized_voice_categories)
-        self.label_encoder = self.get_label_encoder()
+        self.label_encoders = self.get_label_encoders()
+        #Fit encoders
         self.voice_encoder.fit([[self.voice_encoder.categories[encoder_num][0] for encoder_num in range(4)]])
-        self.label_encoder.fit([[self.label_encoder.categories[0][0]]])
+        [encoder.fit([[encoder.categories[0][0]]]) for encoder in self.label_encoders]
         self.get_possible_transpositions(tokenized_chorales[0], 16, 32)
         if(os.path.exists("data/datasets/"+self.name) and self.overwrite == False):
             print("Loading dataset from cache")
@@ -130,28 +133,32 @@ class BachChorale:
             np.array([str(int(note) + interval) if note != "_" else "_" for note in timestep]) for timestep in chorale
         ])
 
-    def get_label_encoder(self):
-        min_note, max_note = min(np.array(self.voice_ranges)[:,0]), max(np.array(self.voice_ranges)[:,1])
-        ohe = OneHotEncoder(categories=[[str(i) for i in range(min_note, max_note+1)] + ["_"]], sparse=False)
-        return ohe
 
+    """Get label encoder for each voice. Removes 'x' """
+    def get_label_encoders(self):
+        label_cats = [cat.copy() for cat in self.voice_encoder.categories]
+        [cat.remove("x") for cat in label_cats]
+        return [OneHotEncoder(categories=[cat], sparse = False) for cat in label_cats]
+
+    """Creates random encoded chorale tensor"""
     def intialize_random_chorale(self,length=100):
         return np.hstack([self.intialize_random_voices(length)]+[mm.intialize_random(length) for mm in self.meta_managers])
 
     def intialize_random_voices(self, length):
         return np.hstack([np.random.choice(len(self.voice_encoder.categories[voiceID])-1, length).reshape(-1,1) for voiceID in range(4)])
 
-    @property
-    def datagen(self):
-        return Datagen(self.data, self.voice_encoder, self.label_encoder, self.sequence_length, self.batch_size, self.test_size)
+    """Returns datagen that masks corresponding voice id"""
+    def get_datagen(self, main_voice_ind):
+        return Datagen(self.data, self.voice_encoder, self.label_encoders[main_voice_ind], self.sequence_length, main_voice_ind, self.batch_size, self.test_size)
 
 
 
 class Datagen(Sequence):
-    def __init__(self, data, voice_encoder, output_encoder, sequence_size, batchsize = 10000, test_size = 0.1): 
+    def __init__(self, data, voice_encoder, label_encoder, sequence_size, main_voice_ind, batchsize = 10000, test_size = 0.1): 
         self.train_data, self.test_data = data[:round(len(data)*(1-test_size))], data[round(len(data)*(1-test_size)):]
         self.batchsize = batchsize
-        self.output_encoder = output_encoder
+        self.main_voice_ind = main_voice_ind
+        self.label_encoder = label_encoder
         self.voice_encoder = voice_encoder
         self.sequence_size = sequence_size
     
@@ -159,34 +166,33 @@ class Datagen(Sequence):
         np.random.shuffle(self.train_data)
         np.random.shuffle(self.test_data)
 
-    def create_features_and_labels(self, data, voice_mask_inds = None):
-        if(voice_mask_inds==None):
-            voice_masks_inds = np.random.randint(0,4, len(data))
+    """Returns batch of x,y samples that are masked in corresponding voice_mask_ind"""
+    def create_features_and_labels(self, data, voice_mask_ind):
         data = np.copy(data)
-        masked_samples, labels = self.mask_samples(data, voice_masks_inds)
+        masked_samples, labels = self.mask_samples(data, voice_mask_ind)
         reversed_samples = self.reverse_samples(masked_samples)
         return [
             reversed_samples[:,ranges,column_ind].reshape(len(data), len(ranges)) for ranges in [range(0,self.sequence_size), [self.sequence_size], range(self.sequence_size+1, 2*self.sequence_size+1)] for column_ind in range(len(reversed_samples[0][0]))
         ], labels
 
     def __getitem__(self, index):
-        return self.create_features_and_labels(self.train_data[index*self.batchsize:(index+1)*self.batchsize])
+        return self.create_features_and_labels(self.train_data[index*self.batchsize:(index+1)*self.batchsize], self.main_voice_ind)
 
     @property
     def test_dataset(self):
-        return self.create_features_and_labels(self.test_data)
+        return self.create_features_and_labels(self.test_data, self.main_voice_ind)
 
-
-    def mask_samples(self, data, mask_inds):
+    
+    def mask_samples(self, data, voice_mask_ind):
         labels = []
         for i, sample in enumerate(data):
             
-            yEncoded = data[i, self.sequence_size, mask_inds[i]]
-            yDecoded = self.voice_encoder.categories[mask_inds[i]][int(yEncoded)]
+            yEncoded = data[i, self.sequence_size, voice_mask_ind]
+            yDecoded = self.voice_encoder.categories[voice_mask_ind][int(yEncoded)]
             labels.append(yDecoded)
+            data[i, self.sequence_size, voice_mask_ind] = self.voice_encoder.categories[voice_mask_ind].index("x")
 
-            data[i, self.sequence_size, mask_inds[i]] = self.voice_encoder.categories[mask_inds[i]].index("x")
-        return data, self.output_encoder.fit_transform(np.array(labels).reshape(-1,1))
+        return data, self.label_encoder.fit_transform(np.array(labels).reshape(-1,1))
         
 
     def reverse_samples(self, samples):

@@ -7,12 +7,12 @@ from tensorflow.python.keras.layers.embeddings import Embedding
 import tensorflow as tf
 
 """Build models from dataset"""
-def build_model(dataset, embedding_dimension):
-    datagen = dataset.datagen
-    embed_ranges = [len(cat) for cat in dataset.datagen.voice_encoder.categories] + [mm.dimension for mm in dataset.meta_managers]
+def build_model(dataset, main_voice_id, embedding_dimension):
+    datagen = dataset.get_datagen(main_voice_id)
+    embed_ranges = [len(cat) for cat in datagen.voice_encoder.categories] + [mm.dimension for mm in dataset.meta_managers]
     n_columns = len(embed_ranges)
     embeddings = [Embedding(dim, embedding_dimension)  for dim in embed_ranges]
-    output_dimension = len(datagen.output_encoder.categories[0])
+    output_dimension = len(datagen.label_encoder.categories[0])
     testSampleX = datagen[0][0]
     inputs = [Input(shape = (inp.shape[1])) for inp in testSampleX]
     embeddingOut = [embeddings[i%n_columns](inputs[i]) for i,inp in enumerate(inputs)]
